@@ -1,9 +1,10 @@
 #include "revert_string.h"
 #include <string.h>
+#include <stdlib.h>
 
 void RevertString(char *str)
 {
-	char t[100];
+	char *t = malloc(sizeof(char) * (strlen(str) + 1));
 
     int len = strlen(str);
     int i = 0;
@@ -12,5 +13,6 @@ void RevertString(char *str)
     t[i] = '\0';
 
     strcpy(str, t);
+	free(t);
 }
 
