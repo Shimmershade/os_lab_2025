@@ -121,7 +121,6 @@ int main(int argc, char **argv) {
         unsigned int end = (i == pnum - 1) ? array_size : (i + 1) * part_size;
         struct MinMax local_min_max = GetMinMax(array, begin, end);
 
-        if (with_files) {
           // use files here
           // господи
 
@@ -140,7 +139,7 @@ int main(int argc, char **argv) {
             // use pipe here
 
             close(pipe_fd[0]); // закрыть чтение в ребенке
-            write(pipe_fd[1], local_min_max, sizeof(struct MinMax));
+            write(pipe_fd[1], &local_min_max, sizeof(struct MinMax));
             close(pipe_fd[1]);
         }
 
@@ -181,9 +180,9 @@ int main(int argc, char **argv) {
       remove(filename);
   } else {
       // read from pipes
-      read(pipe_fd[0], &local_min_max, sizeof(struct MinMax));
-      min = local_min_max.min;
-      max = local_min_max.max;
+      read(pipe_fd[0], &min_max, sizeof(struct MinMax));
+      min = min_max.min;
+      max = min_max.max;
   }
 
     if (min < min_max.min) min_max.min = min;
@@ -203,5 +202,4 @@ int main(int argc, char **argv) {
   printf("Elapsed time: %fms\n", elapsed_time);
   fflush(NULL);
   return 0;
-}
 }
