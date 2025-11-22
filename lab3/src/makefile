@@ -1,14 +1,16 @@
 CC=gcc
 CFLAGS=-I.
 
+all : parallel_min_max run_sequential_min_max 
+
 sequential_min_max : utils.o find_min_max.o utils.h find_min_max.h
 	$(CC) -o sequential_min_max find_min_max.o utils.o sequential_min_max.c $(CFLAGS)
 
 parallel_min_max : utils.o find_min_max.o utils.h find_min_max.h
 	$(CC) -o parallel_min_max utils.o find_min_max.o parallel_min_max.c $(CFLAGS)
 
-run_sequential_min_max : sequential_min_max
-	$(CC) -o run seq_run.c
+run_sequential_min_max : sequential_min_max seq_run.c
+	$(CC) -o run seq_run.c $(CFLAGS)
 
 utils.o : utils.h
 	$(CC) -o utils.o -c utils.c $(CFLAGS)
