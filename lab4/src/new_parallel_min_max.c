@@ -18,7 +18,7 @@
 #include "utils.h"
 
 
-// ./parallel_min_max --seed 4 --array_size 8 --pnum 2 --timeout=20 --by_files 
+// ./parallel_min_max --seed 4 --array_size 9000000000 --pnum 2 --timeout=1
 
 volatile sig_atomic_t timeout_triggered = 0;
 volatile sig_atomic_t active_child_processes = 0;
@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
                                 return 1;
                             }
                         } else {
-                            timeout = 10; // Значение по умолчанию
+                            timeout = 10;
                         }
                         break;
                     case 4:
@@ -187,7 +187,6 @@ int main(int argc, char **argv) {
                 }
                 exit(0);
             } else {
-                // Родительский процесс
                 active_child_processes += 1;
                 child_pids[i] = child_pid;
             }
@@ -219,7 +218,7 @@ int main(int argc, char **argv) {
             
             if (WIFSIGNALED(status) && WTERMSIG(status) == SIGKILL) {
                 if (timeout_triggered) {
-                    printf("Process %d was terminated by timeout\n", finished_pid);
+                    printf("Процесс %d уничтожен\n", finished_pid);
                 }
             }
         }
@@ -238,7 +237,7 @@ int main(int argc, char **argv) {
         int max = INT_MIN;
 
         if (child_pids[i] == 0 && timeout_triggered) {
-            continue;
+            break;
         }
 
         if (with_files) {
