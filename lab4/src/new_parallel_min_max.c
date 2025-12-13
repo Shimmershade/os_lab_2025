@@ -20,22 +20,19 @@
 
 // ./parallel_min_max --seed 4 --array_size 8 --pnum 2 --timeout=20 --by_files 
 
-// Глобальные переменные для обработки сигналов
 volatile sig_atomic_t timeout_triggered = 0;
 volatile sig_atomic_t active_child_processes = 0;
 pid_t *child_pids = NULL;
 int pnum = 0;
 
-// Обработчик сигнала SIGALRM
 void alarm_handler(int sig) {
     if (sig == SIGALRM) {
         timeout_triggered = 1;
         
-        // Отправляем SIGKILL всем дочерним процессам
         for (int i = 0; i < pnum; i++) {
             if (child_pids[i] > 0) {
                 if (kill(child_pids[i], SIGKILL) == 0) {
-                    printf("Timeout reached! Sent SIGKILL to process %d\n", child_pids[i]);
+                    printf("Убит по таймауту процесс %d\n", child_pids[i]);
                 }
             }
         }
@@ -147,13 +144,11 @@ int main(int argc, char **argv) {
         }
     }
 
-    // Массив для хранения PID дочерних процессов
     child_pids = malloc(sizeof(pid_t) * pnum);
     for (int i = 0; i < pnum; i++) {
         child_pids[i] = 0;
     }
     
-    // Устанавливаем обработчик сигнала SIGALRM, если задан timeout
     if (timeout != -1) {
         printf("Using timeout: %d seconds\n", timeout);
         signal(SIGALRM, alarm_handler);
@@ -166,7 +161,6 @@ int main(int argc, char **argv) {
             if (child_pid == 0) {
                 // Дочерний процесс
                 if (timeout != -1) {
-                    // В дочерних процессах игнорируем SIGALRM
                     signal(SIGALRM, SIG_IGN);
                 }
                 
@@ -209,7 +203,6 @@ int main(int argc, char **argv) {
         close(pipe_fd[1]);
     }
 
-    // Ожидание завершения дочерних процессов
     while (active_child_processes > 0) {
         int status;
         pid_t finished_pid = wait(&status);
@@ -217,7 +210,6 @@ int main(int argc, char **argv) {
         if (finished_pid > 0) {
             active_child_processes -= 1;
             
-            // Находим индекс завершившегося процесса
             for (int i = 0; i < pnum; i++) {
                 if (child_pids[i] == finished_pid) {
                     child_pids[i] = 0;
@@ -225,7 +217,6 @@ int main(int argc, char **argv) {
                 }
             }
             
-            // Проверяем, был ли процесс завершен из-за таймаута
             if (WIFSIGNALED(status) && WTERMSIG(status) == SIGKILL) {
                 if (timeout_triggered) {
                     printf("Process %d was terminated by timeout\n", finished_pid);
@@ -233,15 +224,9 @@ int main(int argc, char **argv) {
             }
         }
         
-        // Если сработал таймаут, выходим из цикла ожидания
         if (timeout_triggered) {
             break;
         }
-    }
-    
-    // Если был установлен таймаут, отменяем его
-    if (timeout != -1) {
-        alarm(0); // Отмена будильника
     }
 
     struct MinMax min_max;
@@ -252,7 +237,6 @@ int main(int argc, char **argv) {
         int min = INT_MAX;
         int max = INT_MIN;
 
-        // Пропускаем процессы, которые были завершены по таймауту
         if (child_pids[i] == 0 && timeout_triggered) {
             continue;
         }
@@ -262,15 +246,14 @@ int main(int argc, char **argv) {
             snprintf(filename, sizeof(filename), "minmax_%d_%d.txt", child_pids[i], i);
             FILE *file = fopen(filename, "r");
             if (file == NULL) {
-                // Файл может не существовать, если процесс был завершен по таймауту
                 if (!timeout_triggered) {
-                    printf("Failed to open file %s: ", filename);
+                    printf("Файл не существует %s: ", filename);
                     perror("");
                 }
                 continue;
             }
             if (fscanf(file, "%d %d", &min, &max) != 2) {
-                printf("Failed to read from file %s\n", filename);
+                printf("Не удалрсь открыть файл %s\n", filename);
                 fclose(file);
                 continue;
             }
@@ -304,10 +287,6 @@ int main(int argc, char **argv) {
     printf("Min: %d\n", min_max.min);
     printf("Max: %d\n", min_max.max);
     printf("Elapsed time: %fms\n", elapsed_time);
-    
-    if (timeout_triggered) {
-        printf("Note: Some processes were terminated due to timeout\n");
-    }
     
     return 0;
 }
