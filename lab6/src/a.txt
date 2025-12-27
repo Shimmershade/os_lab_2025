@@ -1,0 +1,4 @@
+
+./server --port 20001 --tnum 4
+
+./client --k 1000 --mod 4 --servers servers.txt
