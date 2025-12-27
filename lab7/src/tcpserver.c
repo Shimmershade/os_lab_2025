@@ -7,8 +7,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define SERV_PORT 10050
-#define BUFSIZE 100
+//#define SERV_PORT 10050
+//#define BUFSIZE 100
 #define SADDR struct sockaddr
 
 int main() {
@@ -16,9 +16,48 @@ int main() {
 
   int lfd, cfd;
   int nread;
-  char buf[BUFSIZE];
   struct sockaddr_in servaddr;
   struct sockaddr_in cliaddr;
+
+  int port = -1;
+  int bufsize = -1;
+  char *buf = NULL;
+
+  while (1) {
+    int current_optind = optind ? optind : 1;
+    static struct option options[] = {
+        {"port", required_argument, 0, 0},
+        {"bufsize", required_argument, 0, 0},
+        {0, 0, 0, 0}
+    };
+    
+    int option_index = 0;
+    int c = getopt_long(argc, argv, "", options, &option_index);
+    
+    if (c == -1)
+      break;
+    
+    switch (c) {
+      case 0: {
+        switch (option_index) {
+          case 0:
+            port = atoi(optarg);
+            break;
+          case 1:
+            bufsize = atoi(optarg);
+            break;
+          default:
+            printf("Index %d is out of options\n", option_index);
+        }
+      } break;
+      
+      case '?':
+        printf("Unknown argument\n");
+        break;
+      default:
+        fprintf(stderr, "getopt returned character code 0%o?\n", c);
+    }
+  }
 
   if ((lfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
     perror("socket");
