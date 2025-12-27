@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <getopt.h>
 
 //#define SERV_PORT 10050
 //#define BUFSIZE 100

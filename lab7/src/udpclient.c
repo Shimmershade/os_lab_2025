@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <getopt.h>
 
 //#define SERV_PORT 20001
 //#define BUFSIZE 1024
