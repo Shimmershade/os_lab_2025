@@ -1,4 +1,0 @@
-./tcpclient --ip 127.0.0.1 --port 10050 --bufsize 100
-./tcpserver --port 10050 --bufsize 100
-./udpclient --port 20001 --bufsize 1024 127.0.0.1
-./udpserver --port 20001 --bufsize 1024

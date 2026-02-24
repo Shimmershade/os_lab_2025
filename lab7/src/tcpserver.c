@@ -8,10 +8,9 @@
 #include <unistd.h>
 #include <getopt.h>
 
-//#define SERV_PORT 10050
-//#define BUFSIZE 100
 #define SADDR struct sockaddr
 
+// ./server --port 12345 --bufsize 256
 int main(int argc, char *argv[]) {
   const size_t kSize = sizeof(struct sockaddr_in);
 
@@ -60,6 +59,11 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  if (port == -1 || bufsize == -1) {
+    printf("Usage: %s --port <port> --bufsize <size>\n", argv[0]);
+    exit(1);
+  }
+
   if ((lfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
     perror("socket");
     exit(1);
@@ -80,23 +84,35 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
+  buf = malloc(bufsize);
+  if (buf == NULL) {
+    perror("malloc");
+    exit(1);
+  }
+
   while (1) {
     unsigned int clilen = kSize;
 
     if ((cfd = accept(lfd, (SADDR *)&cliaddr, &clilen)) < 0) {
       perror("accept");
+      free(buf);
       exit(1);
     }
     printf("connection established\n");
 
     while ((nread = read(cfd, buf, bufsize)) > 0) {
-      write(1, &buf, nread);
+      write(1, buf, nread);
     }
 
     if (nread == -1) {
       perror("read");
+      free(buf);
       exit(1);
     }
     close(cfd);
   }
+
+  free(buf);
+  close(lfd);
+  return 0;
 }
